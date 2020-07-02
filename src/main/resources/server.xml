@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Server>
+    <Server>
+        <Connector port="8080">
+            <Engine>
+                <Host name="localhost" appBase="webapps">
+                </Host>
+            </Engine>
+        </Connector>
+    </Server>
+
+</Server>
