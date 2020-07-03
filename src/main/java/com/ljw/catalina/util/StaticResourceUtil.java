@@ -5,8 +5,15 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 public class StaticResourceUtil {
-    public static String CAT_PATH = StaticResourceUtil.class.getResource("/").getPath();
+    public static String CAT_PATH;
 
+    static {
+        CAT_PATH = StaticResourceUtil.class.getResource("/").getPath();
+        String os = System.getProperty("os.name");
+        if (os.toLowerCase().startsWith("win")) {
+            CAT_PATH = CAT_PATH.substring(1, CAT_PATH.length());
+        }
+    }
     /**
      * 获取静态资源文件的绝对路径
      *

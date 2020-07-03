@@ -10,20 +10,15 @@ import java.net.MalformedURLException;
  * @Author Create by junwei.liang on 2020/7/2
  */
 public class ServletClassLoader extends WebAppLoader {
+    ClassLoader loader;
 
     public ServletClassLoader(String path) throws MalformedURLException, NoSuchMethodException {
         super(path);
     }
 
-    public Servlet loadServlet(String name) throws IllegalAccessException, InstantiationException {
+    public Servlet loadServlet(String name) throws IllegalAccessException, InstantiationException, ClassNotFoundException {
         return (Servlet) super.findClass(name).newInstance();
     }
-
-    /*public Class<?> loadClass(String className) throws ClassNotFoundException {
-
-        Class<Servlet> clazz = (Class<Servlet>) classLoader.loadClass(className);
-        return clazz.newInstance();
-    }*/
 
     /*public static Set<Class<?>> loadClasses(String rootClassPath) throws Exception {
         Set<Class<?>> classSet = Sets.newHashSet();

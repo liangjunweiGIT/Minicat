@@ -47,7 +47,7 @@ public class WebAppLoader extends ClassLoader {
      * @throws NoSuchMethodException
      */
     public WebAppLoader(String webPath) throws NoSuchMethodException, SecurityException, MalformedURLException {
-        lib = webPath + "WEB-INF/lib/";
+        lib = webPath + "lib/";
         classes = webPath + "/";
         map = new HashMap<String, byte[]>(64);
 
