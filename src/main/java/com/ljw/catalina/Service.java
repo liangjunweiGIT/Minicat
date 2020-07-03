@@ -65,16 +65,12 @@ public class Service implements Lifecycle {
 
         List<Element> selectNodes = rootElement.selectNodes("//servlet");
         for (Element element : selectNodes) {
-            // <servlet-name>lagou</servlet-name>
-            Element servletnameElement = (Element) element.selectSingleNode("servlet-name");
-            String servletName = servletnameElement.getStringValue();
-            // <servlet-class>server.LagouServlet</servlet-class>
-            Element servletclassElement = (Element) element.selectSingleNode("servlet-class");
-            String servletClass = servletclassElement.getStringValue();
-
+            Element servletNameElement = (Element) element.selectSingleNode("servlet-name");
+            String servletName = servletNameElement.getStringValue();
+            Element servletClassElement = (Element) element.selectSingleNode("servlet-class");
+            String servletClass = servletClassElement.getStringValue();
             // 根据servlet-name的值找到url-pattern
             Element servletMapping = (Element) rootElement.selectSingleNode("/web-app/servlet-mapping[servlet-name='" + servletName + "']");
-            // /lagou
             String urlPattern = servletMapping.selectSingleNode("url-pattern").getStringValue();
             mapper.put("/" + name + urlPattern, servletClassLoader.loadServlet(servletClass));
         }
