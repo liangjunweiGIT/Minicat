@@ -1,9 +1,9 @@
-package com.ljw.catalina.server;
+package com.ljw.catalina;
 
-import com.ljw.catalina.Request;
-import com.ljw.catalina.Response;
 import com.ljw.catalina.Service;
 import com.ljw.catalina.util.StaticResourceUtil;
+import com.ljw.javax.servlet.Request;
+import com.ljw.javax.servlet.Response;
 
 import java.io.InputStream;
 import java.net.Socket;
@@ -13,12 +13,12 @@ import java.util.Map;
  * @Description
  * @Author Create by junwei.liang on 2020/7/2
  */
-public class ServerProcessor extends Thread {
+public class RequestProcessor extends Thread {
 
     private Socket socket;
     private Map<String, Service> serviceMap;
 
-    public ServerProcessor(Socket socket, Map<String, Service> serviceMap) {
+    public RequestProcessor(Socket socket, Map<String, Service> serviceMap) {
         this.socket = socket;
         this.serviceMap = serviceMap;
     }
@@ -46,8 +46,11 @@ public class ServerProcessor extends Thread {
     private Service findService(String url) {
         url = url.replace(StaticResourceUtil.CAT_PATH, "");
         final int i = url.indexOf("/");
-        if (i != 0) {
-            url = url.substring(0, i);
+        if (i > -1) {
+            url = url.substring(i + 1);
+        }
+        if (url.contains("/")) {
+            url = url.substring(0, url.indexOf("/"));
         }
         return serviceMap.get(url);
     }

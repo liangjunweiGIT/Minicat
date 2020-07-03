@@ -1,4 +1,4 @@
-package com.ljw.catalina;
+package com.ljw.javax.servlet;
 
 public interface Servlet {
 
@@ -6,5 +6,5 @@ public interface Servlet {
 
     void destory() throws Exception;
 
-    void service(Request request,Response response) throws Exception;
+    void service(Request request, Response response) throws Exception;
 }

@@ -1,9 +1,8 @@
-package com.ljw.catalina;
+package com.ljw.javax.servlet;
 
-public abstract class HttpServlet implements Servlet{
+public abstract class HttpServlet implements Servlet {
 
-
-    public abstract void doGet(Request request,Response response);
+    public abstract void doGet(Request request, Response response);
 
     public abstract void doPost(Request request,Response response);
 

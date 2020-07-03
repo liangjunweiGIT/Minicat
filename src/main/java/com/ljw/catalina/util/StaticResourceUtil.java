@@ -15,7 +15,7 @@ public class StaticResourceUtil {
      */
     public static String getAbsolutePath(String path) {
         String absolutePath = CAT_PATH;
-        return absolutePath.replaceAll("\\\\", "").substring(1) + path;
+        return absolutePath.replaceAll("\\\\", "").substring(path.startsWith("/") ? 1 : 0) + path;
     }
 
 

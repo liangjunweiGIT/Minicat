@@ -1,12 +1,24 @@
 package com.ljw.catalina;
 
-import com.ljw.catalina.server.ServerProcessor;
+import com.ljw.catalina.loader.ServletClassLoader;
+import com.ljw.catalina.util.StaticResourceUtil;
+import org.dom4j.Document;
+import org.dom4j.Element;
+import org.dom4j.io.SAXReader;
 
-import java.io.IOException;
+import java.io.File;
+import java.io.InputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionHandler;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @Description tomcat服务
@@ -21,28 +33,14 @@ public class Server implements Lifecycle {
 
     private Map<String, Service> serviceMap;
 
-    public int getPort() {
-        return port;
+    private String appBase;
+
+    public String getAppBase() {
+        return appBase;
     }
 
-    public void setPort(int port) {
-        this.port = port;
-    }
-
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
-    }
-
-    public Map<String, Service> getServiceMap() {
-        return serviceMap;
-    }
-
-    public void setServiceMap(Map<String, Service> serviceMap) {
-        this.serviceMap = serviceMap;
+    public void setAppBase(String appBase) {
+        this.appBase = appBase;
     }
 
     public boolean isStarted() {
@@ -55,10 +53,13 @@ public class Server implements Lifecycle {
 
     private ThreadPoolExecutor threadPoolExecutor;
 
+    private ServletClassLoader servletClassLoader;
+
     @Override
-    public void init() {
-        // 加载解析相关的配置，web.xml
-        loadService();
+    public void init() throws Exception {
+
+        loadConfig();
+
         int corePoolSize = 10;
         int maximumPoolSize = 50;
         long keepAliveTime = 100L;
@@ -75,24 +76,61 @@ public class Server implements Lifecycle {
                 threadFactory,
                 handler
         );
+
+        serviceMap = new HashMap<>();
+        loadService();
+    }
+
+    @Override
+    public void start() throws Exception {
+        ServerSocket serverSocket = new ServerSocket(port);
+        System.out.println("=====>>>Minicat start on port：" + port);
+        while (isStarted()) {
+            Socket socket = serverSocket.accept();
+            RequestProcessor requestProcessor = new RequestProcessor(socket, serviceMap);
+            threadPoolExecutor.execute(requestProcessor);
+        }
     }
 
     /**
      * 加载应用
      */
-    private void loadService() {
-
+    private void loadService() throws Exception {
+        String appPath = StaticResourceUtil.CAT_PATH + appBase + "/";
+        String[] path = new File(appPath).list();
+        if (path == null) {
+            return;
+        }
+        for (String app : path) {
+            String webConfig = appPath + app + "/web.xml";
+            if (!new File(webConfig).exists()) {
+                continue;
+            }
+            String name = app.replace(appPath, "");
+            Service service = new Service(name, new ServletClassLoader(appPath + app), this);
+            service.init();
+            service.start();
+            serviceMap.put(name, service);
+        }
     }
 
-    @Override
-    public void start() throws IOException {
-        ServerSocket serverSocket = new ServerSocket(port);
-        System.out.println("=====>>>Minicat start on port：" + port);
+    /**
+     * 加载server.xml
+     */
+    private void loadConfig() throws Exception {
+        InputStream resourceAsStream = this.getClass().getClassLoader().getResourceAsStream("server.xml");
+        SAXReader saxReader = new SAXReader();
 
-        while (isStarted()) {
-            Socket socket = serverSocket.accept();
-            ServerProcessor requestProcessor = new ServerProcessor(socket, serviceMap);
-            threadPoolExecutor.execute(requestProcessor);
-        }
+        Document document = saxReader.read(resourceAsStream);
+        Element rootElement = document.getRootElement();
+
+        Element service = (Element) rootElement.selectSingleNode("Service");
+        Element connector = (Element) service.selectSingleNode("Connector");
+        this.port = Integer.parseInt(connector.attributeValue("port"));
+
+        Element engine = (Element) connector.selectSingleNode("Engine");
+        Element host = (Element) engine.selectSingleNode("Host");
+        this.address = host.attributeValue("name");
+        this.appBase = host.attributeValue("appBase");
     }
 }
