@@ -72,7 +72,9 @@ public class Service implements Lifecycle {
             // 根据servlet-name的值找到url-pattern
             Element servletMapping = (Element) rootElement.selectSingleNode("/web-app/servlet-mapping[servlet-name='" + servletName + "']");
             String urlPattern = servletMapping.selectSingleNode("url-pattern").getStringValue();
-            mapper.put("/" + name + urlPattern, servletClassLoader.loadServlet(servletClass));
+            Servlet servlet = servletClassLoader.loadServlet(servletClass);
+            servlet.init();
+            mapper.put("/" + name + urlPattern, servlet);
         }
 
     }
